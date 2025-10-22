@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <title>Add Movie</title>
+  </head>
+  <body>
+    <h2>Add Movie</h2>
+
+    {% for movie in S %}
+    <p>
+      {{ movie.Movie_id }}<br />
+      {{ movie.Movie_name }} {{ movie.Movie_genre }} {{ movie.Release_year }} {{ movie.Movie_rating }}
+      <a href="{% url 'delete_movie' movie.Movie_id %}">Delete</a>
+    </p>
+    {% endfor %}
+    <form method="POST">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Submit</button>
+    </form>
+  </body>
+</html>

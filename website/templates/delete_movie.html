@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <title>Delete Movie</title>
+  </head>
+  <body>
+    <h2>Delete Movie</h2>
+    <p>Are you sure you want to delete "{{ movie.Movie_name }}"?</p>
+    <p>ID: {{ movie.Movie_id }}</p>
+    <p>Genre: {{ movie.Movie_genre }}</p>
+    <p>Release Year: {{ movie.Release_year }}</p>
+    <p>Rating: {{ movie.Movie_rating }}</p>
+    <form method="POST">
+      {% csrf_token %}
+      <button type="submit">Yes, Delete</button>
+    </form>
+    <a href="{% url 'get_movies' %}">Cancel</a>
+  </body>
+</html>
