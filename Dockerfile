@@ -9,11 +9,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libc6-dev \  
     && rm -rf /var/lib/apt/lists/* 
  
-COPY requirements.txt website/requirements.txt /website/requirements.txt/ 
+COPY requirements.txt /website/ 
 RUN pip install --upgrade pip 
  
 RUN pip install --no-cache-dir -r requirements.txt 
-COPY website/ /website/ 
+COPY website/ /website/
  
 EXPOSE 8000 
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
