@@ -65,7 +65,7 @@ pipeline {
         minikube -p %MINIKUBE_PROFILE% kubectl -- apply -f deployment.yaml --validate=false
 
         REM Wait for rollout
-        minikube -p %MINIKUBE_PROFILE% kubectl -- rollout status deployment/django-deployment --timeout=120s
+        minikube -p %MINIKUBE_PROFILE% kubectl -- rollout status deployment/django-deployment --timeout=1200s
 
         REM Show pods to verify
         minikube -p %MINIKUBE_PROFILE% kubectl -- get pods -o wide
