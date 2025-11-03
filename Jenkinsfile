@@ -29,17 +29,27 @@ pipeline {
    steps {
      bat '''
      REM Start minikube with --force flag to avoid pulling the image again if it's already present
-     minikube start --driver=docker --force --no-vpn --wait=30000s
+     minikube start --driver=docker --force
 
-     REM Make sure kubectl context points to Minikube
+     REM Ensure kubectl context points to Minikube
      minikube -p %MINIKUBE_PROFILE% update-context
 
-     REM Show minikube & cluster status for debugging
-     minikube status --wait=10s
-     minikube -p %MINIKUBE_PROFILE% kubectl -- cluster-info || rem cluster-info may still be unavailable
+     REM Show minikube & cluster status for debugging (retry in case of unavailability)
+     REM Retry minikube status and kubectl cluster-info a few times in case of network/delay issues
+     for /l %%x in (1, 1, 5) do (
+       minikube status && (
+         echo Minikube is running! 
+         goto continue
+       )
+       echo Minikube is not ready. Retrying...
+       timeout /t 10
+     )
+
+     :continue
+     minikube -p %MINIKUBE_PROFILE% kubectl -- cluster-info || echo "cluster-info may still be unavailable"
      '''
    }
- }
+}
 
     stage('Use Minikube Docker and build image') {
       steps {
