@@ -26,20 +26,20 @@ pipeline {
     }
 
     stage('Start Minikube & prepare env') {
-      steps {
-        bat '''
-        REM Start minikube (idempotent) and wait until ready
-        minikube start --driver=docker
+   steps {
+     bat '''
+     REM Start minikube with --force flag to avoid pulling the image again if it's already present
+     minikube start --driver=docker --force
 
-        REM Make sure kubectl context points to Minikube
-        minikube -p %MINIKUBE_PROFILE% update-context
+     REM Make sure kubectl context points to Minikube
+     minikube -p %MINIKUBE_PROFILE% update-context
 
-        REM Show minikube & cluster status for debugging
-        minikube status --wait=10s
-        minikube -p %MINIKUBE_PROFILE% kubectl -- cluster-info || rem cluster-info may still be unavailable
-        '''
-      }
-    }
+     REM Show minikube & cluster status for debugging
+     minikube status --wait=10s
+     minikube -p %MINIKUBE_PROFILE% kubectl -- cluster-info || rem cluster-info may still be unavailable
+     '''
+   }
+ }
 
     stage('Use Minikube Docker and build image') {
       steps {
