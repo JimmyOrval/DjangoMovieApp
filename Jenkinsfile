@@ -29,7 +29,7 @@ pipeline {
    steps {
      bat '''
      REM Start minikube with --force flag to avoid pulling the image again if it's already present
-     minikube start --driver=docker --force
+     minikube start --driver=docker --force --no-vpn --wait=30000s
 
      REM Make sure kubectl context points to Minikube
      minikube -p %MINIKUBE_PROFILE% update-context
