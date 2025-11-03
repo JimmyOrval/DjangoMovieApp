@@ -1,5 +1,5 @@
 SET DOCKER_TLS_VERIFY=1
-SET DOCKER_HOST=tcp://127.0.0.1:18965
+SET DOCKER_HOST=tcp://127.0.0.1:63964
 SET DOCKER_CERT_PATH=C:\Users\user\.minikube\certs
 SET MINIKUBE_ACTIVE_DOCKERD=minikube
 REM To point your shell to minikube's docker-daemon, run:
