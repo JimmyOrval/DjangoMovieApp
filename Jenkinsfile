@@ -7,7 +7,7 @@ pipeline {
 
   environment {
     MINIKUBE_PROFILE = 'minikube'
-    IMAGE_NAME = 'mydjangoapp:latest'
+    IMAGE_NAME = 'my-django-app:latest'
   }
 
   stages {
