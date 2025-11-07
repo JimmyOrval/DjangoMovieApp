@@ -29,9 +29,12 @@ pipeline {
    steps {
      bat '''
      REM Start minikube with --force flag to avoid pulling the image again if it's already present
-     minikube cache add registry.k8s.io/kube-apiserver:v1.29.0
-     minikube cache add registry.k8s.io/kube-controller-manager:v1.29.0
-     minikube start --driver=docker
+     minikube start ^
+      --driver=docker ^
+      --wait=apiserver ^
+      --docker-env HTTP_PROXY=http://proxy.yourcorp.com:8080 ^
+      --docker-env HTTPS_PROXY=http://proxy.yourcorp.com:8080 ^
+      --docker-env NO_PROXY=localhost,127.0.0.1
 
      REM Ensure kubectl context points to Minikube
      minikube -p %MINIKUBE_PROFILE% update-context
