@@ -20,54 +20,60 @@ pipeline {
         echo USERPROFILE=%USERPROFILE%
         echo PATH=%PATH%
         echo ===== Check existing kubeconfig =====
-        if exist "%USERPROFILE%\\.kube\\config" ( echo kubeconfig found & type "%USERPROFILE%\\.kube\\config" ) else ( echo NO kubeconfig for this user )
+        if exist "%USERPROFILE%\\.kube\\config" (
+          echo kubeconfig found
+          type "%USERPROFILE%\\.kube\\config"
+        ) else (
+          echo NO kubeconfig for this user
+        )
         '''
       }
     }
 
     stage('Start Minikube & prepare env') {
-   steps {
-     bat '''
-     REM Start minikube with --force flag to avoid pulling the image again if it's already present
-     minikube start ^
-      --driver=docker ^
-      --wait=apiserver ^
-      --docker-env HTTP_PROXY=http://proxy.yourcorp.com:8080 ^
-      --docker-env HTTPS_PROXY=http://proxy.yourcorp.com:8080 ^
-      --docker-env NO_PROXY=localhost,127.0.0.1
+      steps {
+        bat '''
+        echo Starting Minikube...
+        minikube -p %MINIKUBE_PROFILE% start --driver=docker
 
-     REM Ensure kubectl context points to Minikube
-     minikube -p %MINIKUBE_PROFILE% update-context
+        echo Ensuring kubectl context points to Minikube...
+        minikube -p %MINIKUBE_PROFILE% update-context
 
-     REM Show minikube & cluster status for debugging (retry in case of unavailability)
-     REM Retry minikube status and kubectl cluster-info a few times in case of network/delay issues
-     for /l %%x in (1, 1, 5) do (
-       minikube status && (
-         echo Minikube is running! 
-         goto continue
-       )
-       echo Minikube is not ready. Retrying...
-       timeout /t 10
-     )
+        echo Checking Minikube status...
+        set READY=0
+        for /l %%x in (1,1,5) do (
+          minikube -p %MINIKUBE_PROFILE% status && (
+            echo Minikube is running!
+            set READY=1
+            goto :ready
+          )
+          echo Minikube not ready, retrying in 10 seconds...
+          timeout /t 10 >nul
+        )
+        :ready
 
-     :continue
-     minikube -p %MINIKUBE_PROFILE% kubectl -- cluster-info || echo "cluster-info may still be unavailable"
-     '''
-   }
-}
+        if "%READY%"=="0" (
+          echo Minikube failed to start after retries.
+          exit /b 1
+        )
+
+        minikube -p %MINIKUBE_PROFILE% kubectl -- cluster-info || echo "cluster-info may still be unavailable"
+        '''
+      }
+    }
 
     stage('Use Minikube Docker and build image') {
       steps {
         bat '''
-        REM Switch docker CLI to Minikube's Docker daemon for the rest of this step
+        echo Switching Docker CLI to Minikube daemon...
         minikube -p %MINIKUBE_PROFILE% docker-env --shell=cmd > docker_env.bat
         call docker_env.bat
 
-        REM Confirm docker now points to minikube (docker info should show minikube server or docker engine info)
+        echo Docker context:
         docker version
         docker info
 
-        REM Build the image *inside* Minikube Docker so k8s can use it without pushing
+        echo Building image %IMAGE_NAME% inside Minikube Docker...
         docker build -t %IMAGE_NAME% .
         '''
       }
@@ -76,13 +82,13 @@ pipeline {
     stage('Deploy to Minikube') {
       steps {
         bat '''
-        REM Use minikube's kubectl wrapper which uses the right kubeconfig/context
+        echo Deploying to Minikube...
         minikube -p %MINIKUBE_PROFILE% kubectl -- apply -f deployment.yaml --validate=false
 
-        REM Wait for rollout
-        minikube -p %MINIKUBE_PROFILE% kubectl -- rollout status deployment/django-deployment --timeout=1200s
+        echo Waiting for rollout to complete...
+        minikube -p %MINIKUBE_PROFILE% kubectl -- rollout status deployment/django-deployment --timeout=600s
 
-        REM Show pods to verify
+        echo Listing pods:
         minikube -p %MINIKUBE_PROFILE% kubectl -- get pods -o wide
         '''
       }
@@ -91,7 +97,8 @@ pipeline {
 
   post {
     always {
-      echo 'Pipeline finished'
+      echo 'Pipeline finished. Checking Minikube status...'
+      bat 'minikube -p %MINIKUBE_PROFILE% status || echo Minikube not running'
     }
     failure {
       echo 'Pipeline failed — inspect console output for diagnostics'
