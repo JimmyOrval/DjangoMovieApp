@@ -95,6 +95,16 @@ pipeline {
     }
   }
 
+  stage('Get Service URL') {
+    steps {
+      bat '''
+      echo Getting service URL...
+      minikube -p %MINIKUBE_PROFILE% service django-service --url > service_url.txt
+      type service_url.txt
+      '''
+    }
+  }
+
   post {
     always {
       echo 'Pipeline finished. Checking Minikube status...'
