@@ -84,26 +84,30 @@ pipeline {
         bat '''
         echo Deploying to Minikube...
         minikube -p %MINIKUBE_PROFILE% kubectl -- apply -f deployment.yaml --validate=false
+        minikube -p %MINIKUBE_PROFILE% kubectl -- apply -f service.yaml --validate=false
 
         echo Waiting for rollout to complete...
         minikube -p %MINIKUBE_PROFILE% kubectl -- rollout status deployment/django-deployment --timeout=600s
 
-        echo Listing pods:
+        echo Listing pods and services:
         minikube -p %MINIKUBE_PROFILE% kubectl -- get pods -o wide
+        minikube -p %MINIKUBE_PROFILE% kubectl -- get svc
+        '''
+      }
+    }
+
+    stage('Get Service URL') {
+      steps {
+        bat '''
+        echo Getting service URL...
+        minikube -p %MINIKUBE_PROFILE% service django-service --url > service_url.txt
+        type service_url.txt
         '''
       }
     }
   }
 
-  stage('Get Service URL') {
-    steps {
-      bat '''
-      echo Getting service URL...
-      minikube -p %MINIKUBE_PROFILE% service django-service --url > service_url.txt
-      type service_url.txt
-      '''
-    }
-  }
+  
 
   post {
     always {
