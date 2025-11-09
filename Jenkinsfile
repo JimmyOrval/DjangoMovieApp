@@ -96,11 +96,13 @@ pipeline {
       }
     }
 
-    stage('Get Service URL') {
+    stage('Get Django Service URL') {
       steps {
         bat '''
-        echo Getting service URL...
-        minikube -p %MINIKUBE_PROFILE% service django-service --url > service_url.txt
+        echo ===== Getting Django Service URL (headless safe) =====
+        for /f "tokens=2 delims=:" %%A in ('minikube -p %MINIKUBE_PROFILE% kubectl -- get svc django-service --output="jsonpath={.spec.ports[0].nodePort}"') do (
+          echo http://127.0.0.1:%%A > service_url.txt
+        )
         type service_url.txt
         '''
       }
