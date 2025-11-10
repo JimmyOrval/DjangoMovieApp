@@ -86,6 +86,9 @@ pipeline {
         minikube -p %MINIKUBE_PROFILE% kubectl -- apply -f deployment.yaml --validate=false
         minikube -p %MINIKUBE_PROFILE% kubectl -- apply -f service.yaml --validate=false
 
+        echo Restarting Django deployment...
+        minikube -p %MINIKUBE_PROFILE% kubectl -- rollout restart deployment/django-deployment
+
         echo Waiting for rollout to complete...
         minikube -p %MINIKUBE_PROFILE% kubectl -- rollout status deployment/django-deployment --timeout=600s
 
